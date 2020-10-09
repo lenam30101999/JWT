@@ -1,6 +1,7 @@
 package com.mcg.jwt.demo.app.controller;
 
 import com.mcg.jwt.demo.domain.payload.LoginRequest;
+import com.mcg.jwt.demo.domain.payload.RefreshTokenRequest;
 import com.mcg.jwt.demo.domain.payload.SignUpRequest;
 import com.mcg.jwt.demo.domain.service.UserServices;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,16 @@ public class BaseController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         return userService.authenticateUser(loginRequest);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshTokenUser(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return userService.genNewAccessToken(refreshTokenRequest);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return userService.logoutRequest(refreshTokenRequest);
     }
 
     @PostMapping("/signup")

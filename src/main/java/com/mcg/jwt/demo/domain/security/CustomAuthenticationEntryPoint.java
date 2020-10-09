@@ -28,7 +28,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         Instant instant = clock.instant();
 
         errors.put("timestamp", instant.toString());
-        errors.put("message", "Wrong username or password!");
+        errors.put("message", "Somethings wrong!");
 
         res.setContentType("application/json;charset=UTF-8");
         res.setStatus(401);

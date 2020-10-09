@@ -1,9 +1,11 @@
 package com.mcg.jwt.demo.domain.payload;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class LoginResponse {
 
     @JsonProperty("access_token")
@@ -12,7 +14,11 @@ public class LoginResponse {
     @JsonProperty("type")
     private String type = "Bearer";
 
-    public LoginResponse(String accessToken) {
+    @JsonProperty("refresh_token")
+    private String refreshToken;
+
+    public LoginResponse(String accessToken, String refreshToken) {
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
 }

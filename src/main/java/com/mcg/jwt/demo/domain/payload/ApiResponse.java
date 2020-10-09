@@ -1,13 +1,20 @@
 package com.mcg.jwt.demo.domain.payload;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.time.Clock;
+import java.time.Instant;
+
 @Data
-@AllArgsConstructor
 public class ApiResponse {
 
-    private boolean success;
-
     private String message;
+
+    private Instant timestamp;
+
+    public ApiResponse(String message) {
+        Clock clock = Clock.systemDefaultZone();
+        this.message = message;
+        this.timestamp = clock.instant();
+    }
 }

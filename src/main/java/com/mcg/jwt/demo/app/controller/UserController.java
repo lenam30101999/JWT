@@ -1,6 +1,5 @@
 package com.mcg.jwt.demo.app.controller;
 
-import com.mcg.jwt.demo.app.dto.Message;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,8 +8,8 @@ import org.springframework.web.bind.annotation.*;
 public class UserController extends BaseController {
 
     @GetMapping("/message")
-    public Message message(){
-        return new Message("JWT Hợp lệ");
+    public ResponseEntity<?> message(){
+        return userService.message();
     }
 
     @PutMapping("/active")

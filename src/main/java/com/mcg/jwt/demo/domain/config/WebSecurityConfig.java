@@ -5,7 +5,6 @@ import com.mcg.jwt.demo.domain.security.CustomAuthenticationEntryPoint;
 import com.mcg.jwt.demo.domain.service.UserServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -63,7 +62,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/login", "/api/signup", "/api/v1/user/active/**")
+                .antMatchers("/api/login", "/api/signup", "/api/refresh", "/api/v1/user/active/**")
                 .permitAll()
                 .antMatchers("/api/**")
                 .authenticated();

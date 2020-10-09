@@ -1,7 +1,5 @@
 package com.mcg.jwt.demo.domain.payload;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mcg.jwt.demo.app.dto.ProfileDTO;
 import lombok.Data;
 
 import javax.validation.constraints.Email;
@@ -18,7 +16,4 @@ public class SignUpRequest {
     @NotBlank
     @Size(min = 6,max = 20)
     private String password;
-
-    @JsonProperty("profile")
-    private ProfileDTO profileDTO;
 }
