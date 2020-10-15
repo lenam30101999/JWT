@@ -1,6 +1,7 @@
 package com.mcg.jwt.demo.domain.service;
 
 import com.mcg.jwt.demo.domain.constants.Constants;
+import com.mcg.jwt.demo.domain.entity.Profile;
 import com.mcg.jwt.demo.domain.payload.*;
 import com.mcg.jwt.demo.domain.entity.CustomUserDetails;
 import com.mcg.jwt.demo.domain.entity.types.Role;
@@ -8,7 +9,6 @@ import com.mcg.jwt.demo.domain.entity.types.State;
 import com.mcg.jwt.demo.domain.entity.User;
 import com.mcg.jwt.demo.domain.utils.GenKey;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -26,15 +26,12 @@ import java.util.Objects;
 @Log4j2
 @Service
 @Transactional
-public class UserServices extends BaseServices implements UserDetailsService {
+public class UserService extends BaseService implements UserDetailsService {
 
     public ResponseEntity<?> save(SignUpRequest signUpRequest){
-        if (!EmailValidator.getInstance().isValid(signUpRequest.getEmail())){
-            return utils.createResponse(new ApiResponse("Email not valid!"), HttpStatus.BAD_REQUEST);
-        }
-
         if (existsEmail(signUpRequest.getEmail())){
-            return utils.createResponse(new ApiResponse("Email already use!"), HttpStatus.BAD_REQUEST);
+            return utils.createErrorResponse(
+                    new ApiResponse(HttpStatus.BAD_REQUEST, "Email have exists!", false));
         }
 
         User user = User.builder()
@@ -43,31 +40,43 @@ public class UserServices extends BaseServices implements UserDetailsService {
                 .role(Role.ROLE_USER)
                 .state(State.NONACTIVE)
                 .build();
+        Profile profile = Profile.builder()
+                .fullName(signUpRequest.getFullName())
+                .phoneNo(signUpRequest.getPhoneNo())
+                .address(signUpRequest.getAddress())
+                .user(user)
+                .build();
+
+        user.setProfile(profile);
         userRepository.save(user);
         this.sendEmail(user.getEmail());
-        return utils.createOkResponse(new ApiResponse("User registered successfully! Check your email to active account"));
+        return utils.createOkResponse(
+                new ApiResponse("User registered successfully! Check your email to active account", true));
     }
 
     public ResponseEntity<?> authenticateUser(LoginRequest loginRequest){
         User user = userRepository.findByEmail(loginRequest.getEmail()).orElse(null);
         if (Objects.isNull(user)){
-            return utils.createResponse(new ApiResponse("Your account is not exists!"), HttpStatus.BAD_REQUEST);
+            return utils.createErrorResponse(
+                new ApiResponse(HttpStatus.BAD_REQUEST, "Your account is not exists!", false));
         }
 
         if (user.getState().equals(State.NONACTIVE)){
-            return utils.createResponse(new ApiResponse("Active your account first!"), HttpStatus.BAD_REQUEST);
-        }else{
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getEmail(),
-                            loginRequest.getPassword()
-                    )
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = tokenProvider.generateAccessToken((CustomUserDetails) authentication.getPrincipal());
-            String refreshToken = tokenProvider.generateRefreshToken((CustomUserDetails) authentication.getPrincipal());
-            return utils.createOkResponse(new LoginResponse(jwt, refreshToken));
+            return utils.createErrorResponse(
+                    new ApiResponse(HttpStatus.BAD_REQUEST, "Active your account first!", false));
         }
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()
+                )
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = tokenProvider.generateAccessToken((CustomUserDetails) authentication.getPrincipal());
+        String refreshToken = tokenProvider.generateRefreshToken((CustomUserDetails) authentication.getPrincipal());
+        return utils.createOkResponse(new LoginResponse(jwt, refreshToken));
+
     }
 
     public ResponseEntity<?> genNewAccessToken(RefreshTokenRequest refreshTokenRequest){
@@ -78,12 +87,14 @@ public class UserServices extends BaseServices implements UserDetailsService {
             UserDetails user = loadUserById(id);
             String jwt = tokenProvider.generateAccessToken((CustomUserDetails) user);
             return utils.createOkResponse(new LoginResponse(jwt, null));
-        }else return utils.createResponse("You have been logout!", HttpStatus.BAD_REQUEST);
+        }else return utils.createErrorResponse(
+                new ApiResponse(HttpStatus.BAD_REQUEST, "You have been logout!", false));
     }
 
     public ResponseEntity<?> logoutRequest(RefreshTokenRequest refreshTokenRequest){
         cacheManager.delete(GenKey.genRefreshKey(refreshTokenRequest.getRefreshToken()));
-        return utils.createResponse("Log out!", HttpStatus.OK);
+        return utils.createErrorResponse(
+                new ApiResponse(HttpStatus.BAD_REQUEST, "Logout!", false));
     }
 
     public ResponseEntity<?> changeState(String email){
@@ -91,18 +102,15 @@ public class UserServices extends BaseServices implements UserDetailsService {
         if (Objects.nonNull(user)){
             user.setState(State.ACTIVE);
             userRepository.saveAndFlush(user);
-            return utils.createOkResponse(new ApiResponse("Success!"));
+            return utils.createOkResponse(new ApiResponse("Success!", true));
         }else {
-            return utils.createResponse("Active failed!", HttpStatus.BAD_REQUEST);
+            return utils.createErrorResponse(
+                    new ApiResponse(HttpStatus.BAD_REQUEST, "Active failed!", false));
         }
     }
 
     public ResponseEntity<?> message(){
         return utils.createOkResponse("JWT hợp lệ!");
-    }
-
-    private boolean existsEmail(String email){
-        return userRepository.existsUserByEmail(email);
     }
 
     @Override
@@ -132,6 +140,10 @@ public class UserServices extends BaseServices implements UserDetailsService {
             throw new UsernameNotFoundException("Not found");
         }
         return new CustomUserDetails(user);
+    }
+
+    private boolean existsEmail(String email){
+        return userRepository.existsUserByEmail(email);
     }
 }
 

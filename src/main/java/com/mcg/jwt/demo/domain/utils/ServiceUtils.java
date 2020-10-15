@@ -15,21 +15,11 @@ public class ServiceUtils {
         return createResponse(body, HttpStatus.OK);
     }
 
-    /**
-     * Clone an existing result as a new one, filtering out http headers that not should be moved on and so on...
-     *
-     * @param result
-     * @param <T>
-     * @return
-     */
-    public <T> ResponseEntity<T> createResponse(ResponseEntity<T> result) {
-
-        // TODO: How to relay the transfer encoding??? The code below makes the fallback method to kick in...
-        ResponseEntity<T> response = createResponse(result.getBody(), result.getStatusCode());
-        return response;
-    }
-
     public <T> ResponseEntity<T> createResponse(T body, HttpStatus httpStatus) {
         return new ResponseEntity<>(body, httpStatus);
+    }
+
+    public <T> ResponseEntity<T> createErrorResponse(T body) {
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 }

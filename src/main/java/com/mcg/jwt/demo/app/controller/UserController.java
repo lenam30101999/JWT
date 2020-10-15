@@ -12,6 +12,11 @@ public class UserController extends BaseController {
         return userService.message();
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfileById(@RequestHeader("Authorization") String header){
+        return profileService.getProfileById(header);
+    }
+
     @PutMapping("/active")
     public ResponseEntity<?> urlActive(@RequestParam("email") String email){
         return userService.changeState(email);

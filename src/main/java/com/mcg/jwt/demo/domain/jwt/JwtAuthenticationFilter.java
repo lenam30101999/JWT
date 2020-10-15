@@ -1,6 +1,6 @@
 package com.mcg.jwt.demo.domain.jwt;
 
-import com.mcg.jwt.demo.domain.service.UserServices;
+import com.mcg.jwt.demo.domain.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,7 +22,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtTokenProvider tokenProvider;
 
     @Autowired
-    private UserServices customUserDetailsService;
+    private UserService customUserDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

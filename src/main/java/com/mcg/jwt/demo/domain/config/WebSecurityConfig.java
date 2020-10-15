@@ -2,7 +2,7 @@ package com.mcg.jwt.demo.domain.config;
 
 import com.mcg.jwt.demo.domain.jwt.JwtAuthenticationFilter;
 import com.mcg.jwt.demo.domain.security.CustomAuthenticationEntryPoint;
-import com.mcg.jwt.demo.domain.service.UserServices;
+import com.mcg.jwt.demo.domain.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private UserServices userService;
+    private UserService userService;
 
     @Autowired
     private CustomAuthenticationEntryPoint authenticationEntryPoint;
@@ -62,7 +62,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/login", "/api/signup", "/api/refresh", "/api/v1/user/active/**")
+                .antMatchers("/api/login", "/api/signup", "/api/refresh", "/api/v1/user/active/**", "/api/logout")
                 .permitAll()
                 .antMatchers("/api/**")
                 .authenticated();
