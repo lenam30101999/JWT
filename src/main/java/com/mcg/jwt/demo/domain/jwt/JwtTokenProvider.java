@@ -1,5 +1,6 @@
 package com.mcg.jwt.demo.domain.jwt;
 
+//import com.mcg.jwt.demo.domain.caches.CacheManager;
 import com.mcg.jwt.demo.domain.caches.CacheManager;
 import com.mcg.jwt.demo.domain.constants.Constants;
 import com.mcg.jwt.demo.domain.entity.CustomUserDetails;
@@ -22,10 +23,10 @@ public class JwtTokenProvider {
 
     @Autowired protected CacheManager cacheManager;
 
-    @Value("${app.jwtSecret.accessToken}")
+    @Value("${app.jwtSecret.token}")
     private String JWT_SECRET_TOKEN;
 
-    @Value("${app.jwtExpirationInMs.accessToken}")
+    @Value("${app.jwtExpirationInMs.token}")
     private long JWT_EXPIRATION_TOKEN;
 
     public String generateAccessToken(CustomUserDetails userDetails) {
@@ -48,7 +49,7 @@ public class JwtTokenProvider {
                 .setSubject(id)
                 .signWith(SignatureAlgorithm.HS512, JWT_SECRET_TOKEN)
                 .compact();
-        cacheManager.setValue(GenKey.genRefreshKey(token), id, Constants.TIME_OUT);
+        cacheManager.set(GenKey.genRefreshKey(token), id);
         return token;
     }
 

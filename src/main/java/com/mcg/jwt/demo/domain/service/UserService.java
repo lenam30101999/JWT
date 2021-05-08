@@ -9,11 +9,13 @@ import com.mcg.jwt.demo.domain.entity.types.State;
 import com.mcg.jwt.demo.domain.entity.User;
 import com.mcg.jwt.demo.domain.utils.GenKey;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,6 +23,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Log4j2
@@ -38,7 +42,7 @@ public class UserService extends BaseService implements UserDetailsService {
                 .email(signUpRequest.getEmail())
                 .password(passwordEncoder.encode(signUpRequest.getPassword()))
                 .role(Role.ROLE_USER)
-                .state(State.NONACTIVE)
+                .state(State.ACTIVE)
                 .build();
         Profile profile = Profile.builder()
                 .fullName(signUpRequest.getFullName())
@@ -49,7 +53,7 @@ public class UserService extends BaseService implements UserDetailsService {
 
         user.setProfile(profile);
         userRepository.save(user);
-        this.sendEmail(user.getEmail());
+        this.sendEmail(signUpRequest.getEmail());
         return utils.createOkResponse(
                 new ApiResponse("User registered successfully! Check your email to active account", true));
     }
@@ -76,7 +80,6 @@ public class UserService extends BaseService implements UserDetailsService {
         String jwt = tokenProvider.generateAccessToken((CustomUserDetails) authentication.getPrincipal());
         String refreshToken = tokenProvider.generateRefreshToken((CustomUserDetails) authentication.getPrincipal());
         return utils.createOkResponse(new LoginResponse(jwt, refreshToken));
-
     }
 
     public ResponseEntity<?> genNewAccessToken(RefreshTokenRequest refreshTokenRequest){
@@ -92,7 +95,7 @@ public class UserService extends BaseService implements UserDetailsService {
     }
 
     public ResponseEntity<?> logoutRequest(RefreshTokenRequest refreshTokenRequest){
-        cacheManager.delete(GenKey.genRefreshKey(refreshTokenRequest.getRefreshToken()));
+        cacheManager.del(GenKey.genRefreshKey(refreshTokenRequest.getRefreshToken()));
         return utils.createErrorResponse(
                 new ApiResponse(HttpStatus.BAD_REQUEST, "Logout!", false));
     }
@@ -119,8 +122,16 @@ public class UserService extends BaseService implements UserDetailsService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found with email : " + email)
                 );
-        return new CustomUserDetails(user);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
+        CustomUserDetails customUserDetails = new CustomUserDetails(user, authorities);
+        return customUserDetails;
     }
+
+//    public ResponseEntity<?> sendMessageTo(String email){
+//        this.sendEmail(email);
+//        return ResponseEntity.ok("OK");
+//    }
 
     private void sendEmail(String email) {
         String url = Constants.url + email;
@@ -139,7 +150,10 @@ public class UserService extends BaseService implements UserDetailsService {
         if (Objects.isNull(user)) {
             throw new UsernameNotFoundException("Not found");
         }
-        return new CustomUserDetails(user);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
+        CustomUserDetails customUserDetails = new CustomUserDetails(user, authorities);
+        return customUserDetails;
     }
 
     private boolean existsEmail(String email){

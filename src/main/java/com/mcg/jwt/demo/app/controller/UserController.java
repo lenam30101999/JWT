@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/users")
 public class UserController extends BaseController {
 
     @GetMapping("/message")
@@ -22,4 +22,9 @@ public class UserController extends BaseController {
         return userService.changeState(email);
     }
 
+//    @PostMapping("/email")
+//    public ResponseEntity<?> sendEmail(){
+//        String email = "lon3w0lfvn2@gmail.com";
+//        return userService.sendMessageTo(email);
+//    }
 }
